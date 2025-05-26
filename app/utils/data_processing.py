@@ -4,15 +4,6 @@ import ast
 from typing import List, Dict, Any
 
 def load_and_preprocess_data(file_path: str) -> pd.DataFrame:
-    """
-    Load and preprocess the movie dataset
-    
-    Args:
-        file_path: Path to the CSV file
-        
-    Returns:
-        Preprocessed DataFrame
-    """
     try:
         movies = pd.read_csv(file_path)
         

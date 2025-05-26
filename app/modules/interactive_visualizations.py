@@ -216,61 +216,141 @@ def show_genre_analysis(movies):
 def show_financial_analysis(movies):
     st.subheader("Financial Analysis")
     
-    # Budget vs Revenue scatter plot
-    valid_data = movies[(movies['budget'] > 0) & (movies['revenue'] > 0)]
+    # Filter for valid financial data
+    valid_budget = movies[(movies['budget'].notna()) & (movies['budget'] > 0)]
+    valid_revenue = movies[(movies['revenue'].notna()) & (movies['revenue'] > 0)]
+    valid_both = movies[
+        (movies['budget'].notna()) & (movies['budget'] > 0) & 
+        (movies['revenue'].notna()) & (movies['revenue'] > 0)
+    ]
     
-    if len(valid_data) > 0:
+    # Show data availability
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Movies with Budget Data", f"{len(valid_budget):,}")
+    with col2:
+        st.metric("Movies with Revenue Data", f"{len(valid_revenue):,}")
+    with col3:
+        st.metric("Movies with Both", f"{len(valid_both):,}")
+    
+    # Budget vs Revenue scatter plot
+    if len(valid_both) > 0:
         fig1 = create_scatter_plot(
-            valid_data, 'budget', 'revenue',
+            valid_both, 'budget', 'revenue',
             "Budget vs Revenue",
             hover_data=['title', 'vote_average'],
             log_x=True, log_y=True
         )
         st.plotly_chart(fig1, use_container_width=True)
         
-        # Most profitable movies
-        top_profit = movies.nlargest(20, 'profit')
+        # Most profitable movies (only if we have profit data or can calculate it)
+        if 'profit' in movies.columns:
+            profitable_movies = movies[
+                (movies['profit'].notna()) & (movies['profit'] > 0)
+            ]
+            if len(profitable_movies) > 0:
+                top_profit = profitable_movies.nlargest(20, 'profit')
+                
+                fig2 = create_horizontal_bar_chart(
+                    top_profit, 'profit', 'title',
+                    "Top 20 Most Profitable Movies",
+                    'viridis'
+                )
+                st.plotly_chart(fig2, use_container_width=True)
+        else:
+            # Calculate profit on the fly
+            valid_both['calculated_profit'] = valid_both['revenue'] - valid_both['budget']
+            profitable_movies = valid_both[valid_both['calculated_profit'] > 0]
+            
+            if len(profitable_movies) > 0:
+                top_profit = profitable_movies.nlargest(20, 'calculated_profit')
+                
+                fig2 = create_horizontal_bar_chart(
+                    top_profit, 'calculated_profit', 'title',
+                    "Top 20 Most Profitable Movies",
+                    'viridis'
+                )
+                st.plotly_chart(fig2, use_container_width=True)
         
-        fig2 = create_horizontal_bar_chart(
-            top_profit, 'profit', 'title',
-            "Top 20 Most Profitable Movies",
-            'viridis'
-        )
-        st.plotly_chart(fig2, use_container_width=True)
+        # Budget vs Revenue by decade (if we have enough data)
+        if len(valid_both) > 50:  # Only show if we have enough data points
+            st.subheader("Financial Trends by Decade")
+            
+            # Add decade column
+            valid_both_copy = valid_both.copy()
+            valid_both_copy['decade'] = (valid_both_copy['release_year'] // 10) * 10
+            
+            # Group by decade
+            decade_financial = valid_both_copy.groupby('decade').agg({
+                'budget': ['mean', 'median', 'count'],
+                'revenue': ['mean', 'median']
+            }).round(0)
+            
+            # Flatten column names
+            decade_financial.columns = ['Avg Budget', 'Median Budget', 'Movie Count', 'Avg Revenue', 'Median Revenue']
+            
+            st.dataframe(decade_financial, use_container_width=True)
+            
+            # Plot average budget and revenue by decade
+            decade_avg = valid_both_copy.groupby('decade')[['budget', 'revenue']].mean().reset_index()
+            
+            fig5 = go.Figure()
+            fig5.add_trace(go.Scatter(
+                x=decade_avg['decade'],
+                y=decade_avg['budget'],
+                mode='lines+markers',
+                name='Average Budget',
+                line=dict(color='blue')
+            ))
+            fig5.add_trace(go.Scatter(
+                x=decade_avg['decade'],
+                y=decade_avg['revenue'],
+                mode='lines+markers',
+                name='Average Revenue',
+                line=dict(color='green'),
+                yaxis='y2'
+            ))
+            
+            fig5.update_layout(
+                title="Average Budget and Revenue by Decade",
+                xaxis_title="Decade",
+                yaxis=dict(title="Budget ($)", side="left"),
+                yaxis2=dict(title="Revenue ($)", side="right", overlaying="y"),
+                hovermode='x unified'
+            )
+            
+            st.plotly_chart(fig5, use_container_width=True)
+    
+    else:
+        st.warning("No movies with complete financial data (both budget and revenue > 0) found.")
         
-        # Distribution plots
+        # Still show individual distributions if available
         col1, col2 = st.columns(2)
         
         with col1:
-            fig3 = create_distribution_plot(
-                movies[movies['budget'] > 0]['budget'],
-                "Budget Distribution",
-                nbins=30, log_x=True
-            )
-            st.plotly_chart(fig3, use_container_width=True)
+            if len(valid_budget) > 0:
+                st.write(f"**Budget Distribution** ({len(valid_budget):,} movies)")
+                fig3 = create_distribution_plot(
+                    valid_budget['budget'],
+                    "Budget Distribution (Log Scale)",
+                    nbins=30, log_x=True
+                )
+                st.plotly_chart(fig3, use_container_width=True)
+            else:
+                st.warning("No valid budget data available")
         
         with col2:
-            fig4 = create_distribution_plot(
-                movies[movies['revenue'] > 0]['revenue'],
-                "Revenue Distribution",
-                nbins=30, log_x=True
-            )
-            st.plotly_chart(fig4, use_container_width=True)
-        
-        # ROI Analysis
-        st.subheader("Return on Investment (ROI) Analysis")
-        movies_with_roi = movies[(movies['budget'] > 0) & (movies['revenue'] > 0)].copy()
-        movies_with_roi['roi'] = ((movies_with_roi['revenue'] - movies_with_roi['budget']) / movies_with_roi['budget']) * 100
-        
-        # Top ROI movies
-        top_roi = movies_with_roi.nlargest(20, 'roi')
-        
-        fig5 = create_horizontal_bar_chart(
-            top_roi, 'roi', 'title',
-            "Top 20 Movies by ROI (%)",
-            'RdYlGn'
-        )
-        st.plotly_chart(fig5, use_container_width=True)
+            if len(valid_revenue) > 0:
+                st.write(f"**Revenue Distribution** ({len(valid_revenue):,} movies)")
+                fig4 = create_distribution_plot(
+                    valid_revenue['revenue'],
+                    "Revenue Distribution (Log Scale)",
+                    nbins=30, log_x=True
+                )
+                st.plotly_chart(fig4, use_container_width=True)
+            else:
+                st.warning("No valid revenue data available")
+
 
 def show_rating_analysis(movies):
     """Show rating analysis visualizations"""

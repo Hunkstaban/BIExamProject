@@ -22,6 +22,24 @@ st.markdown("""
         text-align: center;
         margin-bottom: 2rem;
     }
+    .welcome-intro {
+        background-color: #e8f4fd;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        border-left: 4px solid #1f77b4;
+        margin-bottom: 2rem;
+        text-align: center;
+        color: #333333;
+    }
+    .welcome-intro h2 {
+        color: #1f77b4;
+        margin-bottom: 1rem;
+    }
+    .welcome-intro p {
+        color: #333333;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+    }
     .metric-card {
         background-color: #f0f2f6;
         padding: 1rem;
@@ -36,38 +54,34 @@ st.markdown("""
         padding-left: 20px;
         padding-right: 20px;
     }
-    /* Custom styling for navigation buttons */
-    .nav-button {
-        width: 100%;
-        margin-bottom: 10px;
-    }
-    /* Hide the default streamlit navigation */
-    .css-1d391kg {
-        display: none;
-    }
-    section[data-testid="stSidebar"] > div:first-child {
-        padding-top: 1rem;
+     .recommendation-card {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        border-left: 4px solid #28a745;
+        margin-bottom: 1rem;
     }
 </style>
 """, unsafe_allow_html=True)
 
 def main():
     # Header
-    st.markdown('<h1 class="main-header">Movie Recommendation System</h1>', 
+    st.markdown('<h1 class="main-header">BI Exam - Movie Recommendation System</h1>', 
                 unsafe_allow_html=True)
     
     # Initialize session state for page navigation
     if 'current_page' not in st.session_state:
-        st.session_state.current_page = "📊 Data Overview"
+        st.session_state.current_page = "Welcome"
     
     # Sidebar navigation
-    st.sidebar.title("🎬 Navigation")
+    st.sidebar.title("Navigation")
     st.sidebar.markdown("---")
     
     # Navigation buttons
     pages = [
         "Data Overview",
-        "Interactive Visualizations"
+        "Interactive Visualizations",
+        "Movie Recommendations"
     ]
     
     # Create navigation buttons
@@ -75,13 +89,25 @@ def main():
         if st.sidebar.button(page, key=f"nav_{page}", use_container_width=True):
             st.session_state.current_page = page
     
+    # Show welcome message only on initial load
+    if st.session_state.current_page == "Welcome":
+        st.markdown("""
+        <div class="welcome-intro">
+            <h2>Welcome! 👋</h2>
+            <p>This is my exam project for <strong>Business Intelligence</strong> for the 4th Semester of Datamatiker in CphBusiness.</p>
+            <p>Use the navigation buttons on the left to explore my solution.</p>
+        </div>
+        """, unsafe_allow_html=True)
     
     # Import and display the selected page
-    if st.session_state.current_page == "Data Overview":
+    elif st.session_state.current_page == "Data Overview":
         from modules.data_overview import show
         show()
     elif st.session_state.current_page == "Interactive Visualizations":
         from modules.interactive_visualizations import show
+        show()
+    elif st.session_state.current_page == "Movie Recommendations":
+        from modules.recommendations import show
         show()
 
 if __name__ == "__main__":
