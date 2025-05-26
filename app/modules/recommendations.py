@@ -363,10 +363,6 @@ def show_nlp_recommendations(movies, models):
                                 st.metric("Rating", f"{movie['vote_average']}/10")
                                 st.write(f"Similarity: {movie['similarity_score']:.3f}")
                             
-                            with col3:
-                                if st.button(f"Details", key=f"nlp_details_{idx}"):
-                                    st.info(f"Show detailed info for {movie['title']}")
-                            
                             st.divider()
 
 def show_clustering_recommendations(movies, models):
@@ -521,7 +517,7 @@ def show_rating_prediction(movies, models):
                     prediction_result = predict_movie_rating(movies, models, selected_movie)
                     
                     if prediction_result and 'predicted_class' in prediction_result:
-                        st.subheader("🎯 Prediction Results")
+                        st.subheader("Prediction Results")
                         
                         predicted_class = prediction_result['predicted_class']
                         probabilities = prediction_result['probabilities']

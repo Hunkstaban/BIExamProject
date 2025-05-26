@@ -272,11 +272,11 @@ def show_financial_analysis(movies):
                 )
                 st.plotly_chart(fig2, use_container_width=True)
         
-        # Budget vs Revenue by decade (if we have enough data)
-        if len(valid_both) > 50:  # Only show if we have enough data points
+        # Budget vs Revenue by decade 
+        if len(valid_both) > 50:  
             st.subheader("Financial Trends by Decade")
             
-            # Add decade column
+            # Adding decade column
             valid_both_copy = valid_both.copy()
             valid_both_copy['decade'] = (valid_both_copy['release_year'] // 10) * 10
             

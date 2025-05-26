@@ -188,7 +188,6 @@ def show():
                 st.write(f"- Min: ${revenue_data.min():,.0f}")
                 st.write(f"- Max: ${revenue_data.max():,.0f}")
             
-            # Simple Profitability Analysis (without ROI percentages)
             st.write("**Profitability Overview**")
             
             col1, col2, col3 = st.columns(3)
@@ -253,7 +252,7 @@ def show():
     with col2:
         st.write("**Rating Categories**")
         
-        # Create rating categories
+        # Creating rating categories
         def categorize_rating(rating):
             if rating >= 7.0:
                 return 'Good (7.0 and above)'
