@@ -14,12 +14,15 @@
 - The dataset used is 'The Movies Dataset' from Kaggle: https://www.kaggle.com/datasets/rounakbanik/the-movies-dataset. Due to the datasets large files it's important to download the csv files included in it yourself to run the notebooks. 
 - The csv files used from the dataset is credits.csv, keywords.csv, and movies_metadata.csv.
 - The initial cleaning and exploration appears in exploration-wrangling-engineering.ipynb, followed by exploration-continued.ipynb. Some of the notebooks should be able to run without the other csv files as the /data folder includes merged_dataset.csv, movies_dataset.csv, and movies_with_nlp.csv that has been created during the project.
+- Running the streamlit have, make sure you're in the ./app folder and then run 'streamlit run app.py'
 
 Packages needed:
-- Pandas
-- Numpy
+- pandas
+- numpy
 - matplotlib.pyplot
 - seaborn
 - ast
 - sklearn
 - joblib
+- streamlit
+- plotly
